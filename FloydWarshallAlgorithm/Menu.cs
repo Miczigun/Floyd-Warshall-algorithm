@@ -50,5 +50,11 @@ namespace FloydWarshallAlgorithm
                MessageBox.Show(logic.loadGraphFromFile(openFileDialog.FileName));
             }
         }
+
+        private void trackBar1_Scroll(object sender, EventArgs e)
+        {
+            int currentValue = trackBar1.Value;
+            label4.Text = $"Threads: {currentValue}";
+        }
     }
 }
