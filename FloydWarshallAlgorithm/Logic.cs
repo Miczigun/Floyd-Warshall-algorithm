@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,6 +12,8 @@ namespace FloydWarshallAlgorithm
     {
         private int verticesCount, edgesCount;
         private int[,] graph;
+        private int[] flatGraph;
+        private int[] flatResult;
 
         public String loadGraphFromFile(String file)
         {
@@ -49,5 +52,18 @@ namespace FloydWarshallAlgorithm
             }
             return "The graph was added correctly";
         }
+        [DllImport(@"C:\Users\micha\Desktop\studia\sem5\JA\Floyd-Warshall-algorithm\FloydWarshallAlgorithm\x64\Debug\JACpp.dll")]
+        static extern void cppFloydWarshall(int[] inputArray, int[] outputArray, int rows, int columns);
+
+        public void graphToFlat()
+        {
+            flatGraph = new int[verticesCount * verticesCount];
+            Buffer.BlockCopy(graph, 0, flatGraph, 0, sizeof(int) * verticesCount * verticesCount);
+
+            flatResult = new int[verticesCount * verticesCount];
+
+            cppFloydWarshall(flatGraph, flatResult, verticesCount, verticesCount);
+        }
+
     }
 }
