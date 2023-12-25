@@ -1,27 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace FloydWarshallAlgorithm
 {
-    internal class Program
+    internal static class Program
     {
-        [DllImport(@"C:\Users\micha\Desktop\studia\sem5\JA\Floyd-Warshall-algorithm\FloydWarshallAlgorithm\x64\Debug\JAAsm.dll")]
-        static extern int MyProc1(int a, int b);
+        /// <summary>
+        /// Główny punkt wejścia dla aplikacji.
+        /// </summary>
         [STAThread]
-        static void Main(string[] args)
+        static void Main()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
-            Menu menuForm = new Menu();
-
-            Application.Run(menuForm);
-
+            Application.Run(new Form1());
         }
     }
 }
