@@ -50,8 +50,19 @@ namespace FloydWarshallAlgorithm
 
         private void button2_Click(object sender, EventArgs e)
         {
-            label4.Text = graph.invokeCppMethod(trackBar1.Value).ToString();
-            graph.saveToFile();
+            if (radioButton1.Checked)
+            {
+                label4.Text = $"Time: {graph.invokeAsmMethod(trackBar1.Value).ToString()}";
+                graph.saveToFile();
+            }
+            else if (radioButton2.Checked)
+            {
+                label4.Text = $"Time: {graph.invokeCppMethod(trackBar1.Value).ToString()}";
+                graph.saveToFile();
+            } else
+            {
+                MessageBox.Show("Please pick the language");
+            }
         }
     }
 }

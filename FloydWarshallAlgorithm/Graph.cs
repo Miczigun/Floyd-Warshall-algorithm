@@ -115,5 +115,16 @@ namespace FloydWarshallAlgorithm
 
             return stopwatch.Elapsed.TotalMilliseconds;
         }
+
+        public double invokeAsmMethod(int theardsNo)
+        {
+            graphToFlat();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            asmFloydWarshall(resultGraph, verticesCount);
+            stopwatch.Stop();
+
+            return stopwatch.Elapsed.TotalMilliseconds;
+        }
     }
 }
