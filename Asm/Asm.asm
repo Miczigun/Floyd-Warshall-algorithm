@@ -1,7 +1,7 @@
 .code
-MyProc1 proc
+asmFloydWarshall proc
 add RCX, RDX
 mov RAX, RCX
 ret
-MyProc1 endp
+asmFloydWarshall endp
 end

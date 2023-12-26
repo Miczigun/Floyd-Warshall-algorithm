@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FloydWarshallAlgorithm
@@ -47,14 +49,38 @@ namespace FloydWarshallAlgorithm
             for (int i = 0; i < edgesCount; i++)
             {
                 string[] values = fileContent[i+1].Split(' ');
-                graph[int.Parse(values[0]), int.Parse(values[1])] = int.Parse(values[2]);
+                graph[int.Parse(values[0]) - 1, int.Parse(values[1]) - 1] = int.Parse(values[2]);
             }
             return "The graph was added correctly";
         }
 
+        public void saveToFile()
+        {
+            int[,] outputGraph = new int[verticesCount, verticesCount];
+            Buffer.BlockCopy(resultGraph, 0, outputGraph, 0, sizeof(int)* verticesCount * verticesCount);
+
+            using (StreamWriter writer = new StreamWriter("output.txt"))
+            {
+                for (int i = 0; i < verticesCount; i++)
+                {
+                    for (int j = 0; j < verticesCount; j++)
+                    {
+                        if (outputGraph[i, j] == int.MaxValue)
+                        {
+                            writer.WriteLine($"{i + 1} -> {j + 1}: Not connected");
+                        }
+                        else
+                        {
+                            writer.WriteLine($"{i + 1} -> {j + 1}: {outputGraph[i, j]}");
+                        }
+                    }
+                }
+            }
+        }
+
         public void graphToFlat()
         {
-            resultGraph = new int[verticesCount* verticesCount];
+            resultGraph = new int[verticesCount * verticesCount];
             Buffer.BlockCopy(graph,0,resultGraph,0,sizeof(int) * verticesCount * verticesCount);
         }
 
@@ -62,5 +88,32 @@ namespace FloydWarshallAlgorithm
         static extern void cppFloydWarshall(int[] graph, int rowsAndColumns);
         [DllImport(@"C:\Users\micha\Desktop\studia\sem5\JA\Floyd-Warshall-algorithm\FloydWarshallAlgorithm\x64\Debug\Asm.dll")]
         static extern void asmFloydWarshall(int[] graph, int rowsAndColumns);
+
+        public double invokeCppMethod(int threadsNo)
+        {
+            graphToFlat();
+
+            Task[] tasks = new Task[threadsNo];
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            for (int i = 0; i < threadsNo; ++i)
+            {
+                tasks[i] = Task.Factory.StartNew(() =>
+                {
+                    // Call the C++ function for each thread
+                    cppFloydWarshall(resultGraph, verticesCount);
+                });
+
+
+            }
+
+            // Wait for all threads to finish
+            Task.WaitAll(tasks);
+
+            stopwatch.Stop();
+
+            return stopwatch.Elapsed.TotalMilliseconds;
+        }
     }
 }

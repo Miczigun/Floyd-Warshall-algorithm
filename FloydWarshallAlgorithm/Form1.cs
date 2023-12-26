@@ -47,5 +47,11 @@ namespace FloydWarshallAlgorithm
             int currentValue = trackBar1.Value;
             label3.Text = $"Threads: {currentValue}";
         }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            label4.Text = graph.invokeCppMethod(trackBar1.Value).ToString();
+            graph.saveToFile();
+        }
     }
 }
