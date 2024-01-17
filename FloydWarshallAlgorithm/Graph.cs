@@ -12,9 +12,9 @@ namespace FloydWarshallAlgorithm
 {
     internal class Graph
     {
-        private int verticesCount, edgesCount;
-        private int[,] graph;
-        private int[] resultGraph;
+        private short verticesCount, edgesCount;
+        private short[,] graph;
+        private short[] resultGraph;
 
         public String loadGraphFromFile(String file)
         {
@@ -26,22 +26,22 @@ namespace FloydWarshallAlgorithm
             }
 
             string[] counts = fileContent[0].Split(' ');
-            verticesCount = int.Parse(counts[0]);
-            edgesCount = int.Parse(counts[1]);
+            verticesCount = short.Parse(counts[0]);
+            edgesCount = short.Parse(counts[1]);
 
             if (verticesCount < 1 && edgesCount < 1)
             {
                 return "Edges and Vertices count can not be less than 1!";
             }
 
-            graph = new int[verticesCount, verticesCount];
+            graph = new short[verticesCount, verticesCount];
 
             //Initialize graph of infinity value
             for (int i = 0; i < verticesCount; i++)
             {
                 for (int j = 0; j < verticesCount; j++)
                 {
-                    graph[i, j] = int.MaxValue;
+                    graph[i, j] = 16000;
                 }
                 graph[i, i] = 0;
             }
@@ -49,15 +49,15 @@ namespace FloydWarshallAlgorithm
             for (int i = 0; i < edgesCount; i++)
             {
                 string[] values = fileContent[i+1].Split(' ');
-                graph[int.Parse(values[0]) - 1, int.Parse(values[1]) - 1] = int.Parse(values[2]);
+                graph[int.Parse(values[0]) - 1, int.Parse(values[1]) - 1] = short.Parse(values[2]);
             }
             return "The graph was added correctly";
         }
 
         public void saveToFile()
         {
-            int[,] outputGraph = new int[verticesCount, verticesCount];
-            Buffer.BlockCopy(resultGraph, 0, outputGraph, 0, sizeof(int)* verticesCount * verticesCount);
+            short[,] outputGraph = new short[verticesCount, verticesCount];
+            Buffer.BlockCopy(resultGraph, 0, outputGraph, 0, sizeof(short)* verticesCount * verticesCount);
 
             using (StreamWriter writer = new StreamWriter("output.txt"))
             {
@@ -65,7 +65,7 @@ namespace FloydWarshallAlgorithm
                 {
                     for (int j = 0; j < verticesCount; j++)
                     {
-                        if (outputGraph[i, j] == int.MaxValue)
+                        if (outputGraph[i, j] == 16000)
                         {
                             writer.WriteLine($"{i + 1} -> {j + 1}: Not connected");
                         }
@@ -80,32 +80,42 @@ namespace FloydWarshallAlgorithm
 
         public void graphToFlat()
         {
-            resultGraph = new int[verticesCount * verticesCount];
-            Buffer.BlockCopy(graph,0,resultGraph,0,sizeof(int) * verticesCount * verticesCount);
+            resultGraph = new short[verticesCount * verticesCount];
+            Buffer.BlockCopy(graph,0,resultGraph,0,sizeof(short) * verticesCount * verticesCount);
         }
 
         [DllImport(@"C:\Users\micha\Desktop\studia\sem5\JA\Floyd-Warshall-algorithm\FloydWarshallAlgorithm\x64\Debug\Cplusplus.dll")]
-        static extern void cppFloydWarshall(int[] graph, int rowsAndColumns);
+        static extern void cppFloydWarshall(short[] graph, short rowsAndColumns, short iteration);
         [DllImport(@"C:\Users\micha\Desktop\studia\sem5\JA\Floyd-Warshall-algorithm\FloydWarshallAlgorithm\x64\Debug\Asm.dll")]
-        static extern void asmFloydWarshall(int[] graph, int rowsAndColumns);
+        static extern void asmFloydWarshall(short[] graph, short rowsAndColumns, short iteration);
 
         public double invokeCppMethod(int threadsNo)
         {
             graphToFlat();
-
-            Task[] tasks = new Task[threadsNo];
+            short start = 0;
+            if (threadsNo > verticesCount) { threadsNo = verticesCount; }
+            Task[] tasks = new Task[threadsNo+1];
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            for (int i = 0; i < threadsNo; ++i)
+            for (short i = 0; i < threadsNo; ++i)
             {
                 tasks[i] = Task.Factory.StartNew(() =>
                 {
-                    // Call the C++ function for each thread
-                    cppFloydWarshall(resultGraph, verticesCount);
+                    cppFloydWarshall(resultGraph, verticesCount, i);
                 });
+                start += 1;
+            }
 
-
+            if ( (start+1) != verticesCount)
+            {
+                tasks[threadsNo] = Task.Factory.StartNew(() =>
+                {
+                    for (short i = start; i < verticesCount; ++i)
+                    {
+                        cppFloydWarshall(resultGraph, verticesCount, i);
+                    }
+                });
             }
 
             // Wait for all threads to finish
@@ -113,7 +123,7 @@ namespace FloydWarshallAlgorithm
 
             stopwatch.Stop();
 
-            return stopwatch.Elapsed.TotalMilliseconds;
+            return stopwatch.Elapsed.TotalMilliseconds * 1000;
         }
 
         public double invokeAsmMethod(int theardsNo)
@@ -121,7 +131,10 @@ namespace FloydWarshallAlgorithm
             graphToFlat();
 
             Stopwatch stopwatch = Stopwatch.StartNew();
-            asmFloydWarshall(resultGraph, verticesCount);
+            for (short i = 0; i < verticesCount; ++i)
+            {
+                asmFloydWarshall(resultGraph, verticesCount, i);
+            }
             stopwatch.Stop();
 
             return stopwatch.Elapsed.TotalMilliseconds;
