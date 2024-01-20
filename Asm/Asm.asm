@@ -1,60 +1,68 @@
 .data
-S_MAX equ 0x3E80
-n word ?
-it word ?
+n qword ?
+it qword ?
 
 .code
 asmFloydWarshall proc
-	mov n, dx
-	mov it, bx
+	mov n, rdx
+	mov it, rbx
 
-	xor     rax, rax
     xor     rbx, rbx
+    xor     r8, r8
 
 
 inner_loop_start:
     ; Compute indices
-    mov     r10, rax               ; r10 = i
-    imul    r10, n                ; r10 = i * n
-    add    r10, it               ; r10 = i * n + iteration
+    mov     r10, it              ; r10 = iteration
+    imul    r10, n               ; r10 = iteration * n
+    add     r10, r8              ; r10 = i * n + next set if graph vertices is longer than 16
+    shl     r10, 1
 
-    mov     r11, it                ; r11 = iteration
-    imul    r11, n                ; r11 = iteration * n
-    add     r11, rbx               ; r11 = iteration * n + j
+    mov     r11, rbx                ; r11 = iteration
+    imul    r11, n                 ; r11 = iteration * n
+    add     r11, it               ; r11 = iteration * n + j
+    shl     r11, 1
 
-    mov     r12, rax               ; r12 = i
-    imul    r12, n               ; r12 = i * n
-    add     r12, rbx               ; r12 = i * n + j
+    mov     r12, rbx               ; r12 = i
+    imul    r12, n                 ; r12 = i * n
+    add     r12, r8               ; r12 = i * n + j
+    shl     r12, 1
+
+    vmovdqu  ymm1, ymmword ptr [rcx + r10] ;Load resultGraph[i * n + iteration]
+
+    vmovdqu  ymm2, ymmword ptr [rcx + r12] ;Load resultGraph[i * n + j]
+
+    mov r13, [rcx + r11]
+    movq xmm0, r13
+
+    vpbroadcastw ymm0, xmm0
+    vpaddw ymm3, ymm0, ymm1
+    vpminuw ymm4, ymm3, ymm2
 
     
-    vmovdqu16  ymm0, [rdi + r10*2] ;Load resultGraph[i * rAndC + iteration]
+    ; Update resultGraph[i * n + j]
+    lea r12, [rcx + r12]
+    vmovdqu ymmword ptr [r12], ymm4
 
-    
-    vmovdqu16  ymm1, [rdi + r11*2] ;Load resultGraph[iteration * rAndC + j]
-
-    vmovdqu16  ymm2, [rdi + r12*2] ;Load resultGraph[i * rAndC + j]
-
-    vpaddw ymm3, ymm1, ymm0
-    vpminw ymm4, ymm3, ymm2
-
-
-    ; Update resultGraph[i * rAndC + j]
-    vmovdqu16 [rdi + r12*2], ymm4
+    add r8, 16
+    cmp r8, n
+    je reset_r_eight
+    jl inner_loop_start
 
 inner_loop_increment:
     inc     rbx
     cmp     rbx, n
-    je      inner_loop_end
+    je      loop_end
     jl      inner_loop_start
 
-inner_loop_end:
-    inc     rax
-    cmp     rax, n
-    je      outer_loop_end
-    jl      inner_loop_start
 
-outer_loop_end:
+loop_end:
 	ret
+
+reset_r_eight:
+    xor r8, r8
+    jmp inner_loop_increment
+    
 
 asmFloydWarshall endp
 end
