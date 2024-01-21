@@ -28,21 +28,21 @@ inner_loop_start:
     add     r12, r8               ; r12 = i * n + j
     shl     r12, 1
 
-    vmovdqu  ymm1, ymmword ptr [rcx + r10] ;Load resultGraph[i * n + iteration]
+    vmovdqu  ymm11, ymmword ptr [rcx + r10] ;Load resultGraph[i * n + iteration]
 
-    vmovdqu  ymm2, ymmword ptr [rcx + r12] ;Load resultGraph[i * n + j]
+    vmovdqu  ymm12, ymmword ptr [rcx + r12] ;Load resultGraph[i * n + j]
 
     mov r13, [rcx + r11]
-    movq xmm0, r13
+    movq xmm10, r13
 
-    vpbroadcastw ymm0, xmm0
-    vpaddw ymm3, ymm0, ymm1
-    vpminuw ymm4, ymm3, ymm2
+    vpbroadcastw ymm10, xmm10
+    vpaddw ymm13, ymm10, ymm11
+    vpminuw ymm14, ymm13, ymm12
 
     
     ; Update resultGraph[i * n + j]
     lea r12, [rcx + r12]
-    vmovdqu ymmword ptr [r12], ymm4
+    vmovdqu ymmword ptr [r12], ymm14
 
     add r8, 16
     cmp r8, n

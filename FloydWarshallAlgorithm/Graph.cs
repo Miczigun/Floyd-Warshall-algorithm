@@ -27,6 +27,10 @@ namespace FloydWarshallAlgorithm
 
             string[] counts = fileContent[0].Split(' ');
             verticesCount = short.Parse(counts[0]);
+            if (verticesCount % 16 != 0)
+            {
+                return "Vertices count must be a multiple of 16";
+            }
             edgesCount = short.Parse(counts[1]);
 
             if (verticesCount < 1 && edgesCount < 1)
@@ -93,51 +97,82 @@ namespace FloydWarshallAlgorithm
         {
             graphToFlat();
             short start = 0;
+            short end = (short)(verticesCount / threadsNo);
             if (threadsNo > verticesCount) { threadsNo = verticesCount; }
-            Task[] tasks = new Task[threadsNo+1];
+            Task[] tasks = new Task[threadsNo];
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            for (short i = 0; i < threadsNo; ++i)
+            for (int i = 0; i < threadsNo; ++i)
             {
                 tasks[i] = Task.Factory.StartNew(() =>
                 {
-                    cppFloydWarshall(resultGraph, verticesCount, i);
+                    for (short j = start; j < end; j++)
+                    cppFloydWarshall(resultGraph, verticesCount, j);
                 });
-                start += 1;
+                start = end;
+                if (i == (threadsNo - 2))
+                {
+                    end = verticesCount;
+                } else
+                {
+                    end += end;
+                }
             }
 
-            if ( (start+1) != verticesCount)
-            {
-                tasks[threadsNo] = Task.Factory.StartNew(() =>
-                {
-                    for (short i = start; i < verticesCount; ++i)
-                    {
-                        cppFloydWarshall(resultGraph, verticesCount, i);
-                    }
-                });
-            }
 
             // Wait for all threads to finish
             Task.WaitAll(tasks);
 
             stopwatch.Stop();
 
-            return stopwatch.Elapsed.TotalMilliseconds * 1000;
+            return stopwatch.Elapsed.TotalMilliseconds;
         }
 
-        public double invokeAsmMethod(int theardsNo)
+        public double invokeAsmMethod(int threadsNo)
         {
             graphToFlat();
+            if (threadsNo > verticesCount) { threadsNo = verticesCount; }
+            short start = 0;
+            short end = (short)(verticesCount / threadsNo);
+            Task[] tasks = new Task[threadsNo];
 
             Stopwatch stopwatch = Stopwatch.StartNew();
-            for (short i = 0; i < verticesCount; ++i)
+
+            for (int i = 0; i < threadsNo; ++i)
             {
-                asmFloydWarshall(resultGraph, verticesCount, i);
+                tasks[i] = Task.Factory.StartNew(() =>
+                {
+                    for (short j = start; j < end; j++)
+                        asmFloydWarshall(resultGraph, verticesCount, j);
+                });
+                start = end;
+                if (i == (threadsNo - 2))
+                {
+                    end = verticesCount;
+                }
+                else
+                {
+                    end += end;
+                }
             }
+
+
+            // Wait for all threads to finish
+            Task.WaitAll(tasks);
+
             stopwatch.Stop();
 
             return stopwatch.Elapsed.TotalMilliseconds;
+        }
+
+        public bool checkGraph()
+        {
+            if (graph == null)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

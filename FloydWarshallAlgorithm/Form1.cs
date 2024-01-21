@@ -50,7 +50,11 @@ namespace FloydWarshallAlgorithm
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if (radioButton1.Checked)
+            if (graph.checkGraph())
+            {
+                MessageBox.Show("Load graph before execute!");
+            }
+            else if (radioButton1.Checked)
             {
                 label4.Text = $"Time: {graph.invokeAsmMethod(trackBar1.Value).ToString()}";
                 graph.saveToFile();
