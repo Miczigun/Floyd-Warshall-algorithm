@@ -1,7 +1,9 @@
 ﻿// dllmain.cpp : Definiuje punkt wejścia dla aplikacji DLL.
 #include "pch.h"
 #include <climits>
-constexpr short S_MAX = 16000;
+
+constexpr int S_MAX = 16000;
+
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
@@ -18,22 +20,21 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     return TRUE;
 }
 
-extern "C" __declspec(dllexport) void __stdcall cppFloydWarshall(short* resultGraph, short rAndC, short iteration) {
+extern "C" __declspec(dllexport) void __stdcall cppFloydWarshall(int* resultGraph, int n, int iteration) {
 
-    short ik, kj, ij;
+    int ik, kj, ij;
 
-        for (int i = 0; i < rAndC; ++i)
+        for (int i = 0; i < n; ++i)
         {
-            for (int j = 0; j < rAndC; ++j)
+            for (int j = 0; j < n; ++j)
             {
-                ik = i * rAndC + iteration;
-                kj = iteration * rAndC + j;
-                ij = i * rAndC + j;
+                ik = resultGraph[i * n + iteration];
+                kj = resultGraph[iteration * n + j];
+                ij = resultGraph[i * n + j];
 
-                if (resultGraph[ik] != S_MAX && resultGraph[kj] != S_MAX &&
-                    ( resultGraph[ik] + resultGraph[kj] ) < resultGraph[ij])
+                if (ik != S_MAX && kj != S_MAX && ((ik + kj) < ij))
                 {
-                    resultGraph[ij] = resultGraph[ik] + resultGraph[kj];
+                    resultGraph[i * n + j] = ik + kj;
                 }
             }
         }
