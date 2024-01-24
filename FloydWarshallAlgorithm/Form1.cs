@@ -56,17 +56,59 @@ namespace FloydWarshallAlgorithm
             }
             else if (radioButton1.Checked)
             {
-                label4.Text = $"Time: {graph.invokeAsmMethod(trackBar1.Value).ToString()}";
+                label4.Text = $"Time: {graph.invokeAsmMethod(trackBar1.Value).ToString()} ms";
                 graph.saveToFile();
             }
             else if (radioButton2.Checked)
             {
-                label4.Text = $"Time: {graph.invokeCppMethod(trackBar1.Value).ToString()}";
+                label4.Text = $"Time: {graph.invokeCppMethod(trackBar1.Value).ToString()} ms";
                 graph.saveToFile();
             } else
             {
                 MessageBox.Show("Please pick the language");
             }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            string imagePath = "C:\\Users\\micha\\Desktop\\studia\\sem5\\JA\\Floyd-Warshall-algorithm\\FloydWarshallAlgorithm\\instruction.png"; // Update this path
+
+            // Check if the file exists
+            if (System.IO.File.Exists(imagePath))
+            {
+                // Create a new form to display the image
+                using (ImageDisplayForm imageDisplayForm = new ImageDisplayForm(imagePath))
+                {
+                    // Show the new form as a dialog
+                    imageDisplayForm.ShowDialog();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Image file not found!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+    }
+
+    public partial class ImageDisplayForm : Form
+    {
+        private PictureBox pictureBox;
+
+        public ImageDisplayForm(string imagePath)
+        {
+
+            // Initialize the PictureBox
+            this.Height = 800;
+            this.Width = 800;
+            pictureBox = new PictureBox();
+            pictureBox.Dock = DockStyle.Fill;
+            pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+
+            // Set the image from the specified path
+            pictureBox.ImageLocation = imagePath;
+
+            // Add the PictureBox to the form's controls
+            Controls.Add(pictureBox);
         }
     }
 }
