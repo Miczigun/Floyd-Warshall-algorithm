@@ -43,7 +43,7 @@ To perform benchmarking:
 2. Execute the Floyd Warshall algorithm on each graph using both C++ and ASM implementations.
 3. Record and analyze the execution times for comparison.
 
-Times Comparision:
+Times Comparison:
 
 ![image](https://github.com/Miczigun/Floyd-Warshall-algorithm/assets/92275832/d1013a92-f44f-4f20-868f-6e715b91b4ad)
 
