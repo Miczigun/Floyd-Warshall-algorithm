@@ -98,6 +98,7 @@ namespace FloydWarshallAlgorithm
         {
 
             // Initialize the PictureBox
+            this.Text = "Instruction";
             this.Height = 800;
             this.Width = 800;
             pictureBox = new PictureBox();
